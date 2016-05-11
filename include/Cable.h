@@ -9,7 +9,7 @@
 #include "global_funcs.h"
 #include "Property.h"
 #include "Ribbon.h"
-#include "Visitable.h"
+#include "CablingVisitable.h"
 
 
 using std::string;
@@ -17,7 +17,7 @@ using std::vector;
 using std::pair;
 using std::unique_ptr;
 
-class Cable : public PropertyObject, public Buildable, public Identifiable<int>, public Visitable {
+class Cable : public PropertyObject, public Buildable, public Identifiable<int>, public CablingVisitable {
 
   typedef PtrVector<Ribbon> Container;
   Container ribbons_;

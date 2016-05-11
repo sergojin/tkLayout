@@ -5,12 +5,13 @@
 #include <sstream>
 
 #include "Visitor.h"
+#include "CablingVisitor.h"
 #include "Module.h"
 
 using std::string;
 using std::stringstream;
 
-class TagMaker : public ConstGeometryVisitor {
+class TagMaker : public ConstGeometryVisitor{
 public:
   string sensorTag, sensorGeoTag, posTag;
 

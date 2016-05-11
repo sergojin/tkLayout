@@ -13,8 +13,6 @@ public:
   virtual void visit(DTC&) {}
   virtual void visit(Cable&) {}
   virtual void visit(Ribbon&) {}
-  virtual void visit(BarrelModule&) {}
-  virtual void visit(EndcapModule&) {}
   virtual void visit(DetectorModule&) {}
 };
 
@@ -23,8 +21,6 @@ public:
   virtual void visit(const DTC&) {}
   virtual void visit(const Cable&) {}
   virtual void visit(const Ribbon&) {}
-  virtual void visit(const BarrelModule&) {}
-  virtual void visit(const EndcapModule&) {}
   virtual void visit(const DetectorModule&) {}
 };
 

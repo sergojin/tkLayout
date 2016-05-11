@@ -8,7 +8,7 @@
 
 #include "global_funcs.h"
 #include "Property.h"
-#include "Module.h"
+#include "DetectorModule.h"
 
 #include "CablingVisitable.h"
 #include "CablingVisitor.h"

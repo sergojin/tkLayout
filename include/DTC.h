@@ -10,16 +10,13 @@
 #include "Cable.h"
 #include "Module.h"
 
-#include "CablingVisitor.h"
-#include "CablingVisitable.h"
-
 
 using std::string;
 using std::vector;
 using std::pair;
 using std::unique_ptr;
 
-class DTC : public PropertyObject, public Buildable, public Identifiable<int>, public Visitable {
+class DTC : public PropertyObject, public Buildable, public Identifiable<int>, public CablingVisitable {
 
   typedef PtrVector<Cable> Container;
   Container cables_;
@@ -28,7 +25,7 @@ class DTC : public PropertyObject, public Buildable, public Identifiable<int>, p
 
 public:
 
-  Cable() :
+  DTC() :
             nCablesPerDTC      ("nCablesPerDTC"      , parsedAndChecked(), 1)
   {}
 
