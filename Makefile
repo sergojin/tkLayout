@@ -148,6 +148,16 @@ $(LIBDIR)/Tracker.o: $(SRCDIR)/Tracker.cpp $(INCDIR)/Tracker.h
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Tracker.o $(SRCDIR)/Tracker.cpp 
 	@echo "Built target Tracker.o"
 
+$(LIBDIR)/Ribbon.o: $(SRCDIR)/Ribbon.cpp $(INCDIR)/Ribbon.h
+	@echo "Building target Ribbon.o..."	
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Ribbon.o $(SRCDIR)/Ribbon.cpp
+	@echo "Built target Ribbon.o"
+
+$(LIBDIR)/Cable.o: $(SRCDIR)/Cable.cpp $(INCDIR)/Cable.h
+	@echo "Building target Cable.o..."	
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Cable.o $(SRCDIR)/Cable.cpp
+	@echo "Built target Cable.o"
+
 $(LIBDIR)/SimParms.o: $(SRCDIR)/SimParms.cpp $(INCDIR)/SimParms.h
 	@echo "Building target SimParms.o..."
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/SimParms.o $(SRCDIR)/SimParms.cpp 
@@ -420,7 +430,7 @@ tunePtParam: $(BINDIR)/tunePtParam
 
 $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/CoordinateOperations.o $(LIBDIR)/hit.o $(LIBDIR)/global_funcs.o $(LIBDIR)/Polygon3d.o \
 	$(LIBDIR)/Property.o \
-	$(LIBDIR)/Sensor.o $(LIBDIR)/GeometricModule.o $(LIBDIR)/DetectorModule.o $(LIBDIR)/RodPair.o $(LIBDIR)/Layer.o $(LIBDIR)/Barrel.o $(LIBDIR)/Ring.o $(LIBDIR)/Disk.o $(LIBDIR)/Endcap.o $(LIBDIR)/Tracker.o $(LIBDIR)/SimParms.o \
+	$(LIBDIR)/Sensor.o $(LIBDIR)/GeometricModule.o $(LIBDIR)/DetectorModule.o $(LIBDIR)/RodPair.o $(LIBDIR)/Layer.o $(LIBDIR)/Barrel.o $(LIBDIR)/Ring.o $(LIBDIR)/Disk.o $(LIBDIR)/Endcap.o $(LIBDIR)/Tracker.o $(LIBDIR)/Ribbon.o $(LIBDIR)/Cable.o $(LIBDIR)/SimParms.o \
   $(LIBDIR)/AnalyzerVisitors/MaterialBillAnalyzer.o \
 	$(LIBDIR)/AnalyzerVisitors/TriggerFrequency.o $(LIBDIR)/AnalyzerVisitors/Bandwidth.o $(LIBDIR)/AnalyzerVisitors/IrradiationPower.o $(LIBDIR)/AnalyzerVisitors/TriggerProcessorBandwidth.o $(LIBDIR)/AnalyzerVisitors/TriggerDistanceTuningPlots.o \
 	$(LIBDIR)/AnalyzerVisitor.o $(LIBDIR)/Bag.o $(LIBDIR)/SummaryTable.o $(LIBDIR)/PtErrorAdapter.o $(LIBDIR)/Analyzer.o $(LIBDIR)/ptError.o \
@@ -437,7 +447,7 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/CoordinateOperations.o $(LIBD
 	# And compile the executable by linking the revision too
 	$(LINK)	$(LIBDIR)/CoordinateOperations.o $(LIBDIR)/hit.o $(LIBDIR)/global_funcs.o $(LIBDIR)/Polygon3d.o \
 	$(LIBDIR)/Property.o \
-	$(LIBDIR)/Sensor.o $(LIBDIR)/GeometricModule.o $(LIBDIR)/DetectorModule.o $(LIBDIR)/RodPair.o $(LIBDIR)/Layer.o $(LIBDIR)/Barrel.o $(LIBDIR)/Ring.o $(LIBDIR)/Disk.o $(LIBDIR)/Endcap.o $(LIBDIR)/Tracker.o $(LIBDIR)/SimParms.o \
+	$(LIBDIR)/Sensor.o $(LIBDIR)/GeometricModule.o $(LIBDIR)/DetectorModule.o $(LIBDIR)/RodPair.o $(LIBDIR)/Layer.o $(LIBDIR)/Barrel.o $(LIBDIR)/Ring.o $(LIBDIR)/Disk.o $(LIBDIR)/Endcap.o $(LIBDIR)/Tracker.o $(LIBDIR)/Ribbon.o $(LIBDIR)/Cable.o $(LIBDIR)/SimParms.o \
   $(LIBDIR)/AnalyzerVisitors/MaterialBillAnalyzer.o \
 	$(LIBDIR)/AnalyzerVisitors/TriggerFrequency.o $(LIBDIR)/AnalyzerVisitors/Bandwidth.o $(LIBDIR)/AnalyzerVisitors/IrradiationPower.o $(LIBDIR)/AnalyzerVisitors/TriggerProcessorBandwidth.o $(LIBDIR)/AnalyzerVisitors/TriggerDistanceTuningPlots.o \
 	$(LIBDIR)/AnalyzerVisitor.o $(LIBDIR)/Bag.o $(LIBDIR)/SummaryTable.o $(LIBDIR)/PtErrorAdapter.o $(LIBDIR)/Analyzer.o $(LIBDIR)/ptError.o \

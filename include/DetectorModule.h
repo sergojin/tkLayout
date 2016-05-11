@@ -18,6 +18,7 @@
 #include "GeometricModule.h"
 #include "CoordinateOperations.h"
 #include "Visitable.h"
+#include "CablingVisitable.h"
 #include "MaterialObject.h"
 #include "messageLogger.h"
 
@@ -85,6 +86,8 @@ public:
 
   ReadonlyProperty<int, Default> triggerWindow;
 
+  ReadonlyProperty<std::string, Default> readoutLink;
+ 
   ReadonlyProperty<int, AutoDefault> numSparsifiedHeaderBits,  numSparsifiedPayloadBits;
   ReadonlyProperty<int, AutoDefault> numTriggerDataHeaderBits, numTriggerDataPayloadBits;
 
@@ -130,6 +133,7 @@ public:
       numTriggerDataHeaderBits ("numTriggerDataHeaderBits" , parsedOnly()),
       numTriggerDataPayloadBits("numTriggerDataPayloadBits", parsedOnly()),
       triggerWindow            ("triggerWindow"            , parsedOnly() , 1),
+      readoutLink              ("readoutLink"              , parsedOnly() , string("notype")),
       powerModuleOptical       ("powerModuleOptical"       , parsedOnly()),
       powerModuleChip          ("powerModuleChip"          , parsedOnly()),
       powerStripOptical        ("powerStripOptical"        , parsedOnly()),
@@ -348,6 +352,17 @@ public:
     v.visit(*(const DetectorModule*)this);
     decorated().accept(v);
   }
+
+  void accept(CablingVisitor& v) {
+    v.visit(*this);
+    v.visit(*(DetectorModule*)this);
+  }
+  void accept(ConstCablingVisitor& v) const {
+    v.visit(*this);
+    v.visit(*(const DetectorModule*)this);
+  }
+
+
 
   void setup() override {
     DetectorModule::setup();
@@ -624,6 +639,17 @@ public:
     v.visit(*(const DetectorModule*)this);
     decorated().accept(v); 
   }
+
+  void accept(CablingVisitor& v) {
+    v.visit(*this);
+    v.visit(*(DetectorModule*)this);
+  }
+  void accept(ConstCablingVisitor& v) const {
+    v.visit(*this);
+    v.visit(*(const DetectorModule*)this);
+  }
+
+
 
   //double minZ() const { return center().Z(); } // CUIDADO not accounting for sensor placement
   //double maxZ() const { return center().Z(); } // ditto here
