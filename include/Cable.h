@@ -34,8 +34,12 @@ public:
   }
 
 
+  Container& ribbons() { return ribbons_; }
   const Container& ribbons() const { return ribbons_; }
+
   int nRibbons() const { return ribbons_.size(); }
+  int maxRibbons() {return nRibbonsPerCable(); }
+  
   
   void check() override;
   void build();

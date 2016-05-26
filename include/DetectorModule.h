@@ -356,10 +356,12 @@ public:
   void accept(CablingVisitor& v) {
     v.visit(*this);
     v.visit(*(DetectorModule*)this);
+    decorated().accept(v);
   }
   void accept(ConstCablingVisitor& v) const {
     v.visit(*this);
     v.visit(*(const DetectorModule*)this);
+    decorated().accept(v);
   }
 
 
@@ -643,10 +645,13 @@ public:
   void accept(CablingVisitor& v) {
     v.visit(*this);
     v.visit(*(DetectorModule*)this);
+    decorated().accept(v);
   }
+
   void accept(ConstCablingVisitor& v) const {
     v.visit(*this);
     v.visit(*(const DetectorModule*)this);
+    decorated().accept(v);
   }
 
 

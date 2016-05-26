@@ -12,6 +12,8 @@
 
 class ModuleBase : public PropertyObject, public Buildable, public Placeable, public Identifiable<int>, public Visitable, public CablingVisitable{
 public:
+  using Visitable::accept;
+  using CablingVisitable::accept;
   virtual void build() = 0;
   //virtual ModuleBase* clone() = 0;
 

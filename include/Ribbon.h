@@ -8,7 +8,7 @@
 
 #include "global_funcs.h"
 #include "Property.h"
-#include "DetectorModule.h"
+#include "Module.h"
 
 #include "CablingVisitable.h"
 #include "CablingVisitor.h"
@@ -20,7 +20,7 @@ using std::unique_ptr;
 
 class Ribbon : public PropertyObject, public Buildable, public Identifiable<int>, public CablingVisitable {
 
-  typedef PtrVector<DetectorModule> Container;
+  typedef PtrVector<Module> Container;
   Container detectormodules_;
 
   Property<int, Default> nModulesPerRibbon;
@@ -34,17 +34,18 @@ public:
   void setup() {
   }
 
-
+  Container& modules() { return detectormodules_; }
   const Container& modules() const { return detectormodules_; }
   int nModules() const { return detectormodules_.size(); }
   
   void check() override;
   void build();
 
+  void addModule(Module& m) {}
 
   void accept(CablingVisitor& v) { 
     v.visit(*this); 
-    for (auto& m : detectormodules_) { m.accept(v); }
+    for (Module& m : detectormodules_) { m.accept(v); }
   }
 
   void accept(ConstCablingVisitor& v) const { 

@@ -19,6 +19,12 @@
 #include "Visitor.h"
 #include "Visitable.h"
 
+#include "DTC.h"
+#include "Cable.h"
+#include "Ribbon.h"
+#include "CablingVisitor.h"
+#include "CablingVisitable.h"
+
 using std::set;
 using material::SupportStructure;
 
@@ -28,6 +34,7 @@ class Tracker : public PropertyObject, public Buildable, public Identifiable<str
     typedef set<Module*> Modules;
   private:
     Modules modules_;
+
   public:
     void visit(Module& m) override { modules_.insert(&m); }
     Modules& modules() { return modules_; }
@@ -43,6 +50,7 @@ public:
   typedef PtrVector<Endcap> Endcaps;
   typedef PtrVector<SupportStructure> SupportStructures;
   typedef ModuleSetVisitor::Modules Modules;
+  typedef PtrVector<DTC> DTCs;
 
   ReadonlyProperty<double, Computable> maxR, minR;
   ReadonlyProperty<double, Computable> maxZ;
@@ -55,8 +63,10 @@ private:
   Barrels barrels_;
   Endcaps endcaps_;
   SupportStructures supportStructures_;
+  DTCs dtcs_;
 
   ModuleSetVisitor moduleSetVisitor_;
+
 
   PropertyNode<string> barrelNode;
   PropertyNode<string> endcapNode;
@@ -107,16 +117,32 @@ public:
   const Modules& modules() const { return moduleSetVisitor_.modules(); }
   Modules& modules() { return moduleSetVisitor_.modules(); }
 
+  DTCs& dtcs() { return dtcs_; }
+  const DTCs& dtcs() const { return dtcs_; }
+
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 
     for (auto& b : barrels_) { b.accept(v); }
     for (auto& e : endcaps_) { e.accept(v); }
   }
+
   void accept(ConstGeometryVisitor& v) const {
     v.visit(*this); 
     for (const auto& b : barrels_) { b.accept(v); }
     for (const auto& e : endcaps_) { e.accept(v); }
   }
+
+  
+  void accept(CablingVisitor& v) {
+    v.visit(*this);
+    for (auto& d : dtcs_) { d.accept(v); }
+  }
+  void accept(ConstCablingVisitor& v) const {
+    v.visit(*this);
+    for (const auto& d : dtcs_) { d.accept(v); }
+  }
+  
+
 
   std::pair<double, double> computeMinMaxEta() const; // pair.first = minEta, pair.second = maxEta (reversed with respect to the previous tkLayout geometry model)
 

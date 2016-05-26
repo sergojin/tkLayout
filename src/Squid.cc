@@ -58,6 +58,7 @@ namespace insur {
    * @return True if there were no errors during processing, false otherwise
    */
   bool Squid::buildTracker() {
+
     if (tr) delete tr;
     if (px) delete px;
     tr = NULL;
@@ -182,8 +183,138 @@ namespace insur {
     }
 
     stopTaskClock();
+    buildCabling();
+    DumpCablingInfo();
     return true;
   }
+
+void Squid::buildCabling() {
+
+  class TrackerVisitor : public GeometryVisitor {
+    int cntId = 0;
+    string c1, cntname;
+    int c2, c3;
+    int counter=0;
+    int cableID =0;
+    int ribbonID =0;
+    int dtcID =0;
+    Cable* cable;
+    Ribbon* ribbon;
+    DTC* dtc;
+
+    
+    void CreateNewCable() 
+    { 
+      cable = GeometryFactory::make<Cable>(); 
+      cables_.push_back(cable);
+      cable->myid(cableID);
+      cableID++;
+    }
+    void CreateNewRibbon() { 
+      ribbon = GeometryFactory::make<Ribbon>();
+      ribbons_.push_back(ribbon);
+      ribbon->myid(ribbonID);
+      ribbonID++;   
+    }    
+    void CreateNewDTC() {
+      dtc = GeometryFactory::make<DTC>();
+      dtcs_.push_back(dtc);
+      dtc->myid(dtcID);
+      dtcID++;
+    }
+
+  public:
+    void previsit()
+    {
+      CreateNewDTC();
+      CreateNewCable();
+      CreateNewRibbon();
+    }
+    void postvisit()
+    {
+      std::cout<<" n ribbons: "<<ribbons_.size()<<"\n";
+      std::cout<<" n cables: "<<cables_.size()<<"\n";
+      std::cout<<" n dtcs: "<<dtcs_.size()<<"\n";
+    }
+
+    void visit(Barrel& b) { c1 = b.myid();}
+    void visit(Layer& l)  { c2 = l.myid(); }
+    void visit(RodPair& r){ c3 = r.myid(); }
+    void visit(Module& m) { 
+
+            std::cout << c1 << ", "
+	      << c2 << ", "
+	      << m.moduleRing() << ", "
+	      << std::fixed << std::setprecision(6)
+	      << m.cntName()<<", "
+	      << m.center().Rho() << ", "
+	      << m.center().Z() << ", "
+	      << m.center().Phi() << ", "
+	      << counter
+	      << std::endl;
+
+
+
+      if (ribbon->nModules() == 6) {
+	cable->ribbons().push_back(ribbon);
+	CreateNewRibbon();
+      }
+
+      if (cable->nRibbons() == cable->maxRibbons()) {
+        dtc->cables().push_back(cable);
+        CreateNewCable();
+      }
+
+      if (dtc->nCables() == 1) {
+	//	tr->dtcs().push_back(dtc);
+	CreateNewDTC();
+	
+      }
+
+      ribbon->modules().push_back(&m);
+
+    counter++;
+
+    }
+  } v;
+
+  v.previsit();
+  tr->accept(v);
+  v.postvisit();
+
+}
+
+void Squid::DumpCablingInfo() {
+  class cblVisitor : public ConstCablingVisitor {
+    int dID, cID, rID;
+
+  public:
+    void preVisit() {
+      std::cout<<"initialize dumping"<<"\n";
+    }
+    
+    // void visit(const DTC& d) { dID=d.myid();}
+    void visit(const Cable& c) {cID=c.myid();}
+    void visit(const Ribbon& r)  {rID=r.myid();}
+    void visit(const Module& m) {
+      std::cout << "Cabling , "
+	      << dID << ", "
+	      << cID << ", "
+	      << rID << ", "
+	      << std::fixed << std::setprecision(6)
+	      << m.center().Rho() << ", "
+	      << m.center().Z() << ", "
+	      << m.center().Phi() << ", "
+	      << m.dsDistance()
+	      << std::endl;
+    }
+
+  } v;
+
+  v.preVisit();
+  tr->accept(v);
+}
+
 
  /*
   bool Squid::buildNewTracker() {

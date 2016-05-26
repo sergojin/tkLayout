@@ -74,6 +74,9 @@ public:
   virtual void accept(GeometryVisitor& v) = 0;
   virtual void accept(ConstGeometryVisitor& v) const = 0;
 
+  virtual void accept(CablingVisitor& v) = 0;
+  virtual void accept(ConstCablingVisitor& v) const = 0;
+
   virtual void build() = 0;
 
   double trackCross(const XYZVector& PL, const XYZVector& PU);
@@ -113,6 +116,9 @@ public:
   virtual void accept(GeometryVisitor& v) { v.visit(*this); v.visit(*(GeometricModule*)this); }
   virtual void accept(ConstGeometryVisitor& v) const { v.visit(*this); v.visit(*(const GeometricModule*)this); }
 
+  virtual void accept(CablingVisitor& v) { v.visit(*this); v.visit(*(GeometricModule*)this); }
+  virtual void accept(ConstCablingVisitor& v) const { v.visit(*this); v.visit(*(const GeometricModule*)this); }
+
   virtual void check() override;
   virtual void build() override;
 
@@ -149,6 +155,9 @@ public:
 
   virtual void accept(GeometryVisitor& v) { v.visit(*this); v.visit(*(GeometricModule*)this); }
   virtual void accept(ConstGeometryVisitor& v) const { v.visit(*this); v.visit(*(const GeometricModule*)this); }
+
+  virtual void accept(CablingVisitor& v) { v.visit(*this); v.visit(*(GeometricModule*)this); }
+  virtual void accept(ConstCablingVisitor& v) const { v.visit(*this); v.visit(*(const GeometricModule*)this); }
 
   virtual void build() override;
 

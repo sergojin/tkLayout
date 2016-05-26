@@ -80,6 +80,8 @@ namespace insur {
     Squid();
     virtual ~Squid();
     bool buildTracker();
+    void buildCabling();
+    void DumpCablingInfo();
     //bool dressTracker();
     //bool buildTrackerSystem();
     //bool irradiateTracker();
@@ -161,6 +163,11 @@ namespace insur {
     bool prepareWebsite();
     bool sitePrepared;
     PixelExtractor pxt;
+
+    std::list<DTC*> dtcs_;
+    std::list<Cable*> cables_;
+    std::list<Ribbon*> ribbons_;
+
   };
 }
 #endif	/* _SQUID_H */
