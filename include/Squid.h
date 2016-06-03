@@ -164,9 +164,9 @@ namespace insur {
     bool sitePrepared;
     PixelExtractor pxt;
 
-    std::list<DTC*> dtcs_;
-    std::list<Cable*> cables_;
-    std::list<Ribbon*> ribbons_;
+    std::list<DTC*> dtcs;
+    std::list<Cable*> cables;
+    std::list<Ribbon*> ribbons;
 
   };
 }

@@ -125,12 +125,15 @@ namespace insur {
         t->myid(kv.second.data());
         t->store(kv.second);
         t->build();
+
         //CoordExportVisitor v(t->myid());
         //ModuleDataVisitor v1(t->myid());
         //t->accept(v);
         //t->accept(v1);
         if (t->myid() == "Pixels") px = t;
         else tr = t;
+       	buildCabling();
+	DumpCablingInfo();
       });
 
       std::set<string> unmatchedProperties = PropertyObject::reportUnmatchedProperties();
@@ -183,8 +186,6 @@ namespace insur {
     }
 
     stopTaskClock();
-    buildCabling();
-    DumpCablingInfo();
     return true;
   }
 
@@ -201,34 +202,43 @@ void Squid::buildCabling() {
     Cable* cable;
     Ribbon* ribbon;
     DTC* dtc;
-
     
-    void CreateNewCable() 
+    
+    Cable* CreateNewCable() 
     { 
-      cable = GeometryFactory::make<Cable>(); 
-      cables_.push_back(cable);
+      Cable* cable = new Cable(); 
       cable->myid(cableID);
+      cables_.push_back(cable);
       cableID++;
+      return cable;
     }
-    void CreateNewRibbon() { 
-      ribbon = GeometryFactory::make<Ribbon>();
-      ribbons_.push_back(ribbon);
+    Ribbon* CreateNewRibbon() { 
+      Ribbon* ribbon = new Ribbon();
       ribbon->myid(ribbonID);
+      ribbons_.push_back(ribbon);
       ribbonID++;   
+      return ribbon;
     }    
-    void CreateNewDTC() {
-      dtc = GeometryFactory::make<DTC>();
-      dtcs_.push_back(dtc);
+    DTC* CreateNewDTC() {
+      DTC* dtc = GeometryFactory::make<DTC>();
       dtc->myid(dtcID);
+      dtcs_.push_back(dtc);
       dtcID++;
+      return dtc;
     }
 
   public:
+
+    std::list<DTC*> dtcs_;
+    std::list<Cable*> cables_;
+    std::list<Ribbon*> ribbons_;
+   
+    
     void previsit()
     {
-      CreateNewDTC();
-      CreateNewCable();
-      CreateNewRibbon();
+      dtc = CreateNewDTC();
+      cable = CreateNewCable();
+      ribbon = CreateNewRibbon();
     }
     void postvisit()
     {
@@ -242,7 +252,7 @@ void Squid::buildCabling() {
     void visit(RodPair& r){ c3 = r.myid(); }
     void visit(Module& m) { 
 
-            std::cout << c1 << ", "
+      /*            std::cout << c1 << ", "
 	      << c2 << ", "
 	      << m.moduleRing() << ", "
 	      << std::fixed << std::setprecision(6)
@@ -252,25 +262,24 @@ void Squid::buildCabling() {
 	      << m.center().Phi() << ", "
 	      << counter
 	      << std::endl;
+      */
 
-
-
+      
       if (ribbon->nModules() == 6) {
 	cable->ribbons().push_back(ribbon);
-	CreateNewRibbon();
+	ribbon = CreateNewRibbon();
       }
 
       if (cable->nRibbons() == cable->maxRibbons()) {
         dtc->cables().push_back(cable);
-        CreateNewCable();
+        cable = CreateNewCable();
       }
 
       if (dtc->nCables() == 1) {
-	//	tr->dtcs().push_back(dtc);
-	CreateNewDTC();
+	dtc  = CreateNewDTC();
 	
       }
-
+      
       ribbon->modules().push_back(&m);
 
     counter++;
@@ -282,6 +291,10 @@ void Squid::buildCabling() {
   tr->accept(v);
   v.postvisit();
 
+  dtcs=v.dtcs_;
+  cables=v.cables_;
+  ribbons=v.ribbons_;
+  for (const auto&  d : dtcs ) { tr->dtcs().push_back(d); } 
 }
 
 void Squid::DumpCablingInfo() {
@@ -293,11 +306,11 @@ void Squid::DumpCablingInfo() {
       std::cout<<"initialize dumping"<<"\n";
     }
     
-    // void visit(const DTC& d) { dID=d.myid();}
+    void visit(const DTC& d) { dID=d.myid();}
     void visit(const Cable& c) {cID=c.myid();}
     void visit(const Ribbon& r)  {rID=r.myid();}
     void visit(const Module& m) {
-      std::cout << "Cabling , "
+           std::cout << "Cabling , "
 	      << dID << ", "
 	      << cID << ", "
 	      << rID << ", "
@@ -306,7 +319,7 @@ void Squid::DumpCablingInfo() {
 	      << m.center().Z() << ", "
 	      << m.center().Phi() << ", "
 	      << m.dsDistance()
-	      << std::endl;
+	      << std::endl; 
     }
 
   } v;
