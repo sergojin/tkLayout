@@ -132,8 +132,6 @@ namespace insur {
         //t->accept(v1);
         if (t->myid() == "Pixels") px = t;
         else tr = t;
-       	buildCabling();
-	DumpCablingInfo();
       });
 
       std::set<string> unmatchedProperties = PropertyObject::reportUnmatchedProperties();
@@ -185,6 +183,12 @@ namespace insur {
       return false;
     }
 
+    if (tr->myid() != "Pixels") {
+      buildCabling();
+      DumpCablingInfo();
+    }
+
+
     stopTaskClock();
     return true;
   }
@@ -220,7 +224,7 @@ void Squid::buildCabling() {
       return ribbon;
     }    
     DTC* CreateNewDTC() {
-      DTC* dtc = GeometryFactory::make<DTC>();
+      DTC* dtc = new DTC();
       dtc->myid(dtcID);
       dtcs_.push_back(dtc);
       dtcID++;
@@ -236,15 +240,20 @@ void Squid::buildCabling() {
     
     void previsit()
     {
+      
+      //      if (dtc) delete dtc;
       dtc = CreateNewDTC();
+      //      if (cable) delete cable;
       cable = CreateNewCable();
+      //      if (ribbon) delete ribbon;
       ribbon = CreateNewRibbon();
     }
     void postvisit()
     {
-      std::cout<<" n ribbons: "<<ribbons_.size()<<"\n";
-      std::cout<<" n cables: "<<cables_.size()<<"\n";
-      std::cout<<" n dtcs: "<<dtcs_.size()<<"\n";
+      std::cout<< std::endl;
+      std::cout<<" n ribbons: "<<ribbons_.size()<<std::endl;
+      std::cout<<" n cables: "<<cables_.size()<<std::endl;
+      std::cout<<" n dtcs: "<<dtcs_.size()<<std::endl;
     }
 
     void visit(Barrel& b) { c1 = b.myid();}
@@ -265,17 +274,17 @@ void Squid::buildCabling() {
       */
 
       
-      if (ribbon->nModules() == 6) {
+      if (ribbon->nModules() == ribbon->maxModules()) {
 	cable->ribbons().push_back(ribbon);
 	ribbon = CreateNewRibbon();
       }
 
       if (cable->nRibbons() == cable->maxRibbons()) {
-        dtc->cables().push_back(cable);
+	dtc->cables().push_back(cable);
         cable = CreateNewCable();
       }
 
-      if (dtc->nCables() == 1) {
+      if (dtc->nCables() == dtc->maxCables()) {
 	dtc  = CreateNewDTC();
 	
       }
@@ -294,7 +303,7 @@ void Squid::buildCabling() {
   dtcs=v.dtcs_;
   cables=v.cables_;
   ribbons=v.ribbons_;
-  for (const auto&  d : dtcs ) { tr->dtcs().push_back(d); } 
+  for (const auto&  d : v.dtcs_ ) { tr->dtcs().push_back(d); } 
 }
 
 void Squid::DumpCablingInfo() {

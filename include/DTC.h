@@ -35,6 +35,7 @@ public:
   Container& cables() { return cables_; }
   const Container& cables() const { return cables_; }
   int nCables() const { return cables_.size(); }
+  int maxCables() {return nCablesPerDTC(); }
   
   void check() override;
   void build();

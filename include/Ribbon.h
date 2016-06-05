@@ -37,6 +37,7 @@ public:
   Container& modules() { return detectormodules_; }
   const Container& modules() const { return detectormodules_; }
   int nModules() const { return detectormodules_.size(); }
+  int maxModules() {return nModulesPerRibbon(); }
   
   void check() override;
   void build();

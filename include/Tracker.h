@@ -119,6 +119,8 @@ public:
 
   DTCs& dtcs() { return dtcs_; }
   const DTCs& dtcs() const { return dtcs_; }
+  
+  void addDTC(DTC* d){dtcs_.push_back(d);}
 
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 
