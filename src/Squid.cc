@@ -40,7 +40,7 @@ namespace insur {
   Squid::~Squid() {
     if (mb) delete mb;
     if (is) delete is;
-    if (tr) delete tr;
+    //if (tr) delete tr;
     if (pm) delete pm;
     if (pi) delete pi;
     if (px) delete px;
@@ -197,15 +197,14 @@ void Squid::buildCabling() {
 
   class TrackerVisitor : public GeometryVisitor {
     int cntId = 0;
-    string c1, cntname;
+    string c1, currentmodtype;
     int c2, c3;
-    int counter=0;
     int cableID =0;
     int ribbonID =0;
     int dtcID =0;
-    Cable* cable;
-    Ribbon* ribbon;
-    DTC* dtc;
+    Cable* currentCable;
+    Ribbon* currentRibbon;
+    DTC* currentDTC;
     
     
     Cable* CreateNewCable() 
@@ -240,13 +239,12 @@ void Squid::buildCabling() {
     
     void previsit()
     {
-      
-      //      if (dtc) delete dtc;
-      dtc = CreateNewDTC();
-      //      if (cable) delete cable;
-      cable = CreateNewCable();
-      //      if (ribbon) delete ribbon;
-      ribbon = CreateNewRibbon();
+      currentDTC = CreateNewDTC();
+      currentCable = CreateNewCable();
+      currentRibbon = CreateNewRibbon();
+
+      currentDTC->cables().push_back(currentCable);
+      currentCable->ribbons().push_back(currentRibbon);
     }
     void postvisit()
     {
@@ -256,53 +254,69 @@ void Squid::buildCabling() {
       std::cout<<" n dtcs: "<<dtcs_.size()<<std::endl;
     }
 
+    bool CheckModuleTypeTransition(Module& m){
+      if (m.moduleType() != currentmodtype)
+	return true;
+      else 
+	return false;
+    }
+    
+    bool CheckNewRibbonNeeded(Module& m) { 
+      if ((currentRibbon->nModules() >= currentRibbon->maxModules()) || CheckModuleTypeTransition(m))
+	return true;
+      else 
+	return false;
+    }
+
+    bool CheckNewCableNeeded(Module& m) { 
+      if ((currentCable->nRibbons() >= currentCable->maxRibbons()) || CheckModuleTypeTransition(m))
+	return true;
+      else 
+	return false;
+    }
+
+    bool CheckNewDTCNeeded(Module& m) {
+      if ((currentDTC->nCables() >= currentDTC->maxCables()) || CheckModuleTypeTransition(m))
+        return true;
+      else
+        return false;
+    }
+
+
     void visit(Barrel& b) { c1 = b.myid();}
     void visit(Layer& l)  { c2 = l.myid(); }
     void visit(RodPair& r){ c3 = r.myid(); }
     void visit(Module& m) { 
 
-      /*            std::cout << c1 << ", "
-	      << c2 << ", "
-	      << m.moduleRing() << ", "
-	      << std::fixed << std::setprecision(6)
-	      << m.cntName()<<", "
-	      << m.center().Rho() << ", "
-	      << m.center().Z() << ", "
-	      << m.center().Phi() << ", "
-	      << counter
-	      << std::endl;
-      */
+      if (CheckNewDTCNeeded(m)) { 
+	currentDTC = CreateNewDTC(); 
+	std::cout<<dtcID<<std::endl;
+	} 			       
 
+      if (CheckNewCableNeeded(m)) { 
+	currentCable = CreateNewCable(); 
+	currentDTC->cables().push_back(currentCable);
+	std::cout<<dtcID<<"  "<<cableID<<"   "<<ribbonID<<std::endl;
+	} 			       
+
+      if (CheckNewRibbonNeeded(m)) { 
+	currentRibbon = CreateNewRibbon(); 
+	currentCable->ribbons().push_back(currentRibbon);
+	}       
+
+      currentRibbon->modules().push_back(&m);
+      currentmodtype = m.moduleType();
       
-      if (ribbon->nModules() == ribbon->maxModules()) {
-	cable->ribbons().push_back(ribbon);
-	ribbon = CreateNewRibbon();
-      }
-
-      if (cable->nRibbons() == cable->maxRibbons()) {
-	dtc->cables().push_back(cable);
-        cable = CreateNewCable();
-      }
-
-      if (dtc->nCables() == dtc->maxCables()) {
-	dtc  = CreateNewDTC();
-	
-      }
-      
-      ribbon->modules().push_back(&m);
-
-    counter++;
-
-    }
+    }     
   } v;
 
   v.previsit();
   tr->accept(v);
   v.postvisit();
 
-  dtcs=v.dtcs_;
-  cables=v.cables_;
-  ribbons=v.ribbons_;
+  //dtcs=v.dtcs_;
+  //  cables=v.cables_;
+  //  ribbons=v.ribbons_;
   for (const auto&  d : v.dtcs_ ) { tr->dtcs().push_back(d); } 
 }
 
