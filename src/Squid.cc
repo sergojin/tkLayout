@@ -7,6 +7,7 @@
 #include "SvnRevision.h"
 #include "Squid.h"
 #include "StopWatch.h"
+#include "AnalyzerVisitors/TriggerProcessorBandwidth.h"
 
 namespace insur {
   // public
@@ -197,7 +198,7 @@ void Squid::buildCabling() {
 
   class TrackerVisitor : public GeometryVisitor {
     int cntId = 0;
-    string c1, currentmodtype;
+    string c1, currentmodtype, currentmodlink;
     int c2, c3;
     int cableID =0;
     int ribbonID =0;
@@ -205,8 +206,7 @@ void Squid::buildCabling() {
     Cable* currentCable;
     Ribbon* currentRibbon;
     DTC* currentDTC;
-    
-    
+
     Cable* CreateNewCable() 
     { 
       Cable* cable = new Cable(); 
@@ -233,18 +233,12 @@ void Squid::buildCabling() {
   public:
 
     std::list<DTC*> dtcs_;
+    std::list<TrackFinder*> tfs_;
     std::list<Cable*> cables_;
     std::list<Ribbon*> ribbons_;
    
-    
     void previsit()
     {
-      currentDTC = CreateNewDTC();
-      currentCable = CreateNewCable();
-      currentRibbon = CreateNewRibbon();
-
-      currentDTC->cables().push_back(currentCable);
-      currentCable->ribbons().push_back(currentRibbon);
     }
     void postvisit()
     {
@@ -260,23 +254,30 @@ void Squid::buildCabling() {
       else 
 	return false;
     }
+
+    bool CheckModuleLinkTransition(Module& m){
+      if (m.readoutLink() != currentmodlink)
+        return true;
+      else
+        return false;
+    }
     
     bool CheckNewRibbonNeeded(Module& m) { 
-      if ((currentRibbon->nModules() >= currentRibbon->maxModules()) || CheckModuleTypeTransition(m))
+      if ((currentRibbon->nModules() >= currentRibbon->maxModules()) || CheckModuleTypeTransition(m) || CheckModuleLinkTransition(m))
 	return true;
       else 
 	return false;
     }
 
     bool CheckNewCableNeeded(Module& m) { 
-      if ((currentCable->nRibbons() >= currentCable->maxRibbons()) || CheckModuleTypeTransition(m))
+      if ((currentCable->nRibbons() >= currentCable->maxRibbons()) || CheckModuleTypeTransition(m) ||  CheckModuleLinkTransition(m))
 	return true;
       else 
 	return false;
     }
 
     bool CheckNewDTCNeeded(Module& m) {
-      if ((currentDTC->nCables() >= currentDTC->maxCables()) || CheckModuleTypeTransition(m))
+      if ((currentDTC->nCables() >= currentDTC->maxCables()) || CheckModuleTypeTransition(m) ||  CheckModuleLinkTransition(m))
         return true;
       else
         return false;
@@ -288,27 +289,30 @@ void Squid::buildCabling() {
     void visit(RodPair& r){ c3 = r.myid(); }
     void visit(Module& m) { 
 
-      if (CheckNewDTCNeeded(m)) { 
-	currentDTC = CreateNewDTC(); 
-	std::cout<<dtcID<<std::endl;
-	} 			       
+      //      std::cout<<"Module:"<<m.myid()<<"  "<<m.moduleType()<<"  "<<m.readoutLink()<<std::endl;
+      
+      if (CheckNewRibbonNeeded(m)) {
+        currentRibbon = CreateNewRibbon();
 
-      if (CheckNewCableNeeded(m)) { 
-	currentCable = CreateNewCable(); 
-	currentDTC->cables().push_back(currentCable);
-	std::cout<<dtcID<<"  "<<cableID<<"   "<<ribbonID<<std::endl;
-	} 			       
-
-      if (CheckNewRibbonNeeded(m)) { 
-	currentRibbon = CreateNewRibbon(); 
-	currentCable->ribbons().push_back(currentRibbon);
-	}       
+	if (CheckNewCableNeeded(m)) {
+	  currentCable = CreateNewCable();
+	
+	  if (CheckNewDTCNeeded(m)) {
+	    currentDTC = CreateNewDTC();
+	
+	  }
+	  currentDTC->cables().push_back(currentCable);		  
+	}
+        currentCable->ribbons().push_back(currentRibbon);	
+      }
 
       currentRibbon->modules().push_back(&m);
       currentmodtype = m.moduleType();
-      
+      currentmodlink = m.readoutLink();
+
     }     
   } v;
+
 
   v.previsit();
   tr->accept(v);
@@ -323,33 +327,60 @@ void Squid::buildCabling() {
 void Squid::DumpCablingInfo() {
   class cblVisitor : public ConstCablingVisitor {
     int dID, cID, rID;
-
+    int numProcEta, numProcPhi;
+    float crossoverR=589;
+    std::set < std::pair<int,int>> dtc_tf_map_;
+    
   public:
     void preVisit() {
-      std::cout<<"initialize dumping"<<"\n";
+      numProcEta = lsp->numTriggerTowersEta();
+      numProcPhi = lsp->numTriggerTowersPhi();
+
     }
     
+    void postVisit() {
+      for(auto item : dtc_tf_map_) { std::cout << "DTC id: " << item.first <<  "  is connected to TF: "   <<item.second<<std::endl;}
+    }
+
+
+    const SimParms* lsp;
+    const Tracker* ltrk;
+            
     void visit(const DTC& d) { dID=d.myid();}
     void visit(const Cable& c) {cID=c.myid();}
     void visit(const Ribbon& r)  {rID=r.myid();}
     void visit(const Module& m) {
-           std::cout << "Cabling , "
+      /*           std::cout << "Cabling , "
 	      << dID << ", "
 	      << cID << ", "
 	      << rID << ", "
+	      << m.moduleType() << ", "
+	      << m.readoutLink() << ", "
 	      << std::fixed << std::setprecision(6)
 	      << m.center().Rho() << ", "
 	      << m.center().Z() << ", "
 	      << m.center().Phi() << ", "
-	      << m.dsDistance()
-	      << std::endl; 
+	      << m.dsDistance()<<", "
+	      << std::endl; 	   */
+
+	   for (int i=0; i < numProcEta; i++)
+	     if (AnalyzerHelpers::isModuleInEtaSector(*lsp, *ltrk, m, i))
+	       for (int j=0; j < numProcPhi; j++)
+		 if (AnalyzerHelpers::isModuleInPhiSector(*lsp, m, 589, j)) {
+		   //std::cout<<"DTC id:"<<dID<<" connected to TF"<<i*numProcEta+j<<std::endl;
+		   dtc_tf_map_.insert(std::make_pair(dID,i*numProcEta+j ));
+		 }
     }
 
   } v;
 
+  v.lsp = simParms_;
+  v.ltrk = tr;
   v.preVisit();
   tr->accept(v);
+  v.postVisit();
 }
+
 
 
  /*

@@ -19,6 +19,7 @@
 #include "Visitor.h"
 #include "Visitable.h"
 
+#include "TrackFinder.h"
 #include "DTC.h"
 #include "Cable.h"
 #include "Ribbon.h"
@@ -51,6 +52,7 @@ public:
   typedef PtrVector<SupportStructure> SupportStructures;
   typedef ModuleSetVisitor::Modules Modules;
   typedef PtrVector<DTC> DTCs;
+  typedef PtrVector<TrackFinder> TFs;
 
   ReadonlyProperty<double, Computable> maxR, minR;
   ReadonlyProperty<double, Computable> maxZ;
@@ -64,6 +66,7 @@ private:
   Endcaps endcaps_;
   SupportStructures supportStructures_;
   DTCs dtcs_;
+  TFs tfs_;
 
   ModuleSetVisitor moduleSetVisitor_;
 
@@ -119,9 +122,10 @@ public:
 
   DTCs& dtcs() { return dtcs_; }
   const DTCs& dtcs() const { return dtcs_; }
-  
-  void addDTC(DTC* d){dtcs_.push_back(d);}
 
+  TFs& tfs() { return tfs_; }
+  const TFs& tfs() const { return tfs_; }
+  
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 
     for (auto& b : barrels_) { b.accept(v); }

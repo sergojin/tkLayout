@@ -2,6 +2,7 @@
 #define CABLINGVISITOR_H
 
 class Tracker;
+class TrackFinder;
 class DTC;
 class Cable;
 class Ribbon;
@@ -14,6 +15,7 @@ class WedgeModule;
 class CablingVisitor { 
 public:
   virtual void visit(Tracker&) {}
+  virtual void visit(TrackFinder&) {}
   virtual void visit(DTC&) {}
   virtual void visit(Cable&) {}
   virtual void visit(Ribbon&) {}
@@ -28,6 +30,7 @@ public:
 class ConstCablingVisitor {
 public:
   virtual void visit(const Tracker&) {}
+  virtual void visit(const TrackFinder&) {}
   virtual void visit(const DTC&) {}
   virtual void visit(const Cable&) {}
   virtual void visit(const Ribbon&) {}

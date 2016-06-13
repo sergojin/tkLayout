@@ -115,6 +115,7 @@ namespace insur {
     void setCommandLine(int argc, char* argv[]);
     void pixelExtraction(std::string xmlout);
     void createAdditionalXmlSite(std::string xmlout);
+
   private:
     //std::string g;
     Tracker* tr;
@@ -163,10 +164,6 @@ namespace insur {
     bool prepareWebsite();
     bool sitePrepared;
     PixelExtractor pxt;
-
-    std::list<DTC*> dtcs;
-    std::list<Cable*> cables;
-    std::list<Ribbon*> ribbons;
 
   };
 }
