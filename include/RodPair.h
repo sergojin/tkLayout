@@ -71,13 +71,30 @@ public:
   
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 
-    for (auto& m : zPlusModules_) { m.accept(v); }
-    for (auto& m : zMinusModules_) { m.accept(v); }
+    if (v.GetActiveSide()!=0)
+      {
+      for (auto& m : zPlusModules_) { if ( (m.side()*v.GetActiveSide())> 0) m.accept(v); }
+      for (auto& m : zMinusModules_) { if ( (m.side()*v.GetActiveSide())> 0) m.accept(v); }
+      }
+    else 
+      {
+      for (auto& m : zPlusModules_) { m.accept(v); }
+      for (auto& m : zMinusModules_) { m.accept(v); }
+      }
   }
+
   void accept(ConstGeometryVisitor& v) const { 
     v.visit(*this); 
-    for (const auto& m : zPlusModules_) { m.accept(v); }
-    for (const auto& m : zMinusModules_) { m.accept(v); }
+    if (v.GetActiveSide()==0)
+      {
+      for (const auto& m : zPlusModules_) { if ( (m.side()*v.GetActiveSide())> 0) m.accept(v); }
+      for (const auto& m : zMinusModules_) { if ( (m.side()*v.GetActiveSide())> 0) m.accept(v); }
+      }
+    else
+      {
+      for (const auto& m : zPlusModules_) { m.accept(v); }
+      for (const auto& m : zMinusModules_) { m.accept(v); }
+      }
   }
 
   const MaterialObject& materialObject() const;

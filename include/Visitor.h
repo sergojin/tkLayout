@@ -18,6 +18,7 @@ class GeometricModule;
 class SimParms;
 
 class GeometryVisitor { 
+  int activeSide=0;  
 public:
   virtual void visit(Tracker&) {}
   virtual void visit(Barrel&) {}
@@ -33,9 +34,12 @@ public:
   virtual void visit(WedgeModule&) {}
   virtual void visit(GeometricModule&) {}
   virtual void visit(SimParms&) {}
+  void SetActiveSide(int aside) {activeSide = aside;}
+  int GetActiveSide() {return activeSide;}
 };
 
 class ConstGeometryVisitor {
+  int activeSide=0;  
 public:
   virtual void visit(const Tracker&) {}
   virtual void visit(const Barrel&) {}
@@ -51,6 +55,8 @@ public:
   virtual void visit(const WedgeModule&) {}
   virtual void visit(const GeometricModule&) {}
   virtual void visit(const SimParms&) {}
+  void SetActiveSide(int aside) {activeSide = aside;}
+  int GetActiveSide() {return activeSide;}
 };
 
 #endif

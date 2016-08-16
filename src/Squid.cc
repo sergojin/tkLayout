@@ -186,7 +186,7 @@ namespace insur {
 
     if (tr->myid() != "Pixels") {
       buildCabling();
-      DumpCablingInfo();
+      analyzeCablingInfo();
     }
 
 
@@ -199,16 +199,20 @@ void Squid::buildCabling() {
   class TrackerVisitor : public GeometryVisitor {
     int cntId = 0;
     string c1, currentmodtype, currentmodlink;
+    int currentActiveSide=0;
     int c2, c3;
     int cableID =0;
     int ribbonID =0;
     int dtcID =0;
     Cable* currentCable;
     Ribbon* currentRibbon;
+    int currentLayer;
     DTC* currentDTC;
+    int nlinks =0;
 
     Cable* CreateNewCable() 
     { 
+      std::cout<<"created new cable"<<"\n";
       Cable* cable = new Cable(); 
       cable->myid(cableID);
       cables_.push_back(cable);
@@ -239,10 +243,12 @@ void Squid::buildCabling() {
    
     void previsit()
     {
+      currentActiveSide = GetActiveSide();
     }
     void postvisit()
     {
       std::cout<< std::endl;
+      std::cout<<" n links: "<<nlinks<<std::endl;
       std::cout<<" n ribbons: "<<ribbons_.size()<<std::endl;
       std::cout<<" n cables: "<<cables_.size()<<std::endl;
       std::cout<<" n dtcs: "<<dtcs_.size()<<std::endl;
@@ -261,23 +267,38 @@ void Squid::buildCabling() {
       else
         return false;
     }
+
+    bool CheckTrackerCenterTransition(Module& m){
+      if ( m.side() != currentActiveSide )
+	return true;
+      else
+	return false;
+    }
+
+    bool CheckLayerTransition(int l){
+      if (l != currentLayer )
+	return true;
+      else
+	return false;
+    }
+
     
     bool CheckNewRibbonNeeded(Module& m) { 
-      if ((currentRibbon->nModules() >= currentRibbon->maxModules()) || CheckModuleTypeTransition(m) || CheckModuleLinkTransition(m))
+      if ((currentRibbon->nModules() >= currentRibbon->maxModules()) || CheckModuleTypeTransition(m) || CheckModuleLinkTransition(m) || CheckTrackerCenterTransition(m) || CheckLayerTransition(c2) )
 	return true;
       else 
 	return false;
     }
 
     bool CheckNewCableNeeded(Module& m) { 
-      if ((currentCable->nRibbons() >= currentCable->maxRibbons()) || CheckModuleTypeTransition(m) ||  CheckModuleLinkTransition(m))
+      if ((currentCable->nRibbons() >= currentCable->maxRibbons()) || CheckModuleTypeTransition(m) ||  CheckModuleLinkTransition(m) || CheckTrackerCenterTransition(m) || CheckLayerTransition(c2) )
 	return true;
       else 
 	return false;
     }
 
     bool CheckNewDTCNeeded(Module& m) {
-      if ((currentDTC->nCables() >= currentDTC->maxCables()) || CheckModuleTypeTransition(m) ||  CheckModuleLinkTransition(m))
+      if ((currentDTC->nCables() >= currentDTC->maxCables()) || CheckModuleTypeTransition(m) ||  CheckModuleLinkTransition(m) || CheckTrackerCenterTransition(m) || CheckLayerTransition(c2) )
         return true;
       else
         return false;
@@ -285,12 +306,16 @@ void Squid::buildCabling() {
 
 
     void visit(Barrel& b) { c1 = b.myid();}
+    void visit(Endcap& e) { c1 = e.myid(); }
     void visit(Layer& l)  { c2 = l.myid(); }
-    void visit(RodPair& r){ c3 = r.myid(); }
+    void visit(Disk& d)  {  c2 = d.myid(); }
     void visit(Module& m) { 
 
-      //      std::cout<<"Module:"<<m.myid()<<"  "<<m.moduleType()<<"  "<<m.readoutLink()<<std::endl;
-      
+      //      if ((c1=="TEDD")&&(c2<1000)) {
+	nlinks++;
+
+	//	std::cout<<"Module: "<<c1<<"   "<<c2<<"   "<< m.myid()<<"  "<<m.moduleType()<<"  "<<m.readoutLink()<<std::endl;      
+
       if (CheckNewRibbonNeeded(m)) {
         currentRibbon = CreateNewRibbon();
 
@@ -299,22 +324,28 @@ void Squid::buildCabling() {
 	
 	  if (CheckNewDTCNeeded(m)) {
 	    currentDTC = CreateNewDTC();
-	
 	  }
 	  currentDTC->cables().push_back(currentCable);		  
 	}
         currentCable->ribbons().push_back(currentRibbon);	
       }
 
+      std::cout<<"Module: "<<c1<<"   "<<c2<<"   "<< m.myid()<<"  "<<m.moduleType()<<"  "<<m.readoutLink()<<"   "<<m.side()<<"   "<<currentRibbon<<"   "<<currentCable<<std::endl;      
+
       currentRibbon->modules().push_back(&m);
       currentmodtype = m.moduleType();
       currentmodlink = m.readoutLink();
+      currentActiveSide = m.side();
+      currentLayer = c2;
+      }
 
-    }     
+    //    }     
   } v;
 
-
+  v.SetActiveSide(-1.0);
   v.previsit();
+  tr->accept(v);
+  v.SetActiveSide(1.0);
   tr->accept(v);
   v.postvisit();
 
@@ -324,64 +355,12 @@ void Squid::buildCabling() {
   for (const auto&  d : v.dtcs_ ) { tr->dtcs().push_back(d); } 
 }
 
-void Squid::DumpCablingInfo() {
-  class cblVisitor : public ConstCablingVisitor {
-    int dID, cID, rID;
-    int numProcEta, numProcPhi;
-    float crossoverR=589;
-    std::set < std::pair<int,int>> dtc_tf_map_;
-    
-  public:
-    void preVisit() {
-      numProcEta = lsp->numTriggerTowersEta();
-      numProcPhi = lsp->numTriggerTowersPhi();
+bool Squid::analyzeCablingInfo() {
 
-    }
-    
-    void postVisit() {
-      for(auto item : dtc_tf_map_) { std::cout << "DTC id: " << item.first <<  "  is connected to TF: "   <<item.second<<std::endl;}
-    }
+  a.analyzeCablingInfo(*tr); 
+  return true;
 
-
-    const SimParms* lsp;
-    const Tracker* ltrk;
-            
-    void visit(const DTC& d) { dID=d.myid();}
-    void visit(const Cable& c) {cID=c.myid();}
-    void visit(const Ribbon& r)  {rID=r.myid();}
-    void visit(const Module& m) {
-      /*           std::cout << "Cabling , "
-	      << dID << ", "
-	      << cID << ", "
-	      << rID << ", "
-	      << m.moduleType() << ", "
-	      << m.readoutLink() << ", "
-	      << std::fixed << std::setprecision(6)
-	      << m.center().Rho() << ", "
-	      << m.center().Z() << ", "
-	      << m.center().Phi() << ", "
-	      << m.dsDistance()<<", "
-	      << std::endl; 	   */
-
-	   for (int i=0; i < numProcEta; i++)
-	     if (AnalyzerHelpers::isModuleInEtaSector(*lsp, *ltrk, m, i))
-	       for (int j=0; j < numProcPhi; j++)
-		 if (AnalyzerHelpers::isModuleInPhiSector(*lsp, m, 589, j)) {
-		   //std::cout<<"DTC id:"<<dID<<" connected to TF"<<i*numProcEta+j<<std::endl;
-		   dtc_tf_map_.insert(std::make_pair(dID,i*numProcEta+j ));
-		 }
-    }
-
-  } v;
-
-  v.lsp = simParms_;
-  v.ltrk = tr;
-  v.preVisit();
-  tr->accept(v);
-  v.postVisit();
 }
-
-
 
  /*
   bool Squid::buildNewTracker() {

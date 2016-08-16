@@ -160,6 +160,9 @@ namespace insur {
                                           const std::vector<double>& triggerMomenta,
                                           const std::vector<double>& thresholdProbabilities,
                                           int etaSteps = 50);
+    virtual void analyzeCablingInfo(Tracker& tracker);
+
+
     void createTriggerDistanceTuningPlots(Tracker& tracker, const std::vector<double>& triggerMomenta);
     void analyzeGeometry(Tracker& tracker, int nTracks = 1000);
     void computeBandwidth(Tracker& tracker);

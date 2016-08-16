@@ -81,7 +81,7 @@ namespace insur {
     virtual ~Squid();
     bool buildTracker();
     void buildCabling();
-    void DumpCablingInfo();
+    bool analyzeCablingInfo();
     //bool dressTracker();
     //bool buildTrackerSystem();
     //bool irradiateTracker();

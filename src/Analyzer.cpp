@@ -3193,5 +3193,60 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       else return optimalSpacingDistribution;
     }
 
+
+  void Analyzer::analyzeCablingInfo(Tracker& tracker) {
+    class cblVisitor : public ConstCablingVisitor {
+      int dID, cID, rID;
+      int numProcEta, numProcPhi;
+      float crossoverR=589;
+      std::set < std::pair<int,int>> dtc_tf_map_;
+      int nlinks=0;
+      int nribbons=0;
+      int ncables=0;
+      string sectionName_;
+
+    public:
+      void preVisit() {
+	numProcEta = lsp->numTriggerTowersEta();
+	numProcPhi = lsp->numTriggerTowersPhi();
+
+      }
+
+      void postVisit() {
+	for(auto item : dtc_tf_map_) { std::cout << "Created cable from DTC id: " << item.first <<  " to TF id: "   <<item.second<<std::endl;}
+	std::cout<<"Total n of links: "<<nlinks<<std::endl;
+	std::cout<<"Total n of ribbons: "<<nribbons<<std::endl;
+	std::cout<<"Total n of cables: "<<ncables<<std::endl;
+      }
+
+
+      const SimParms* lsp;
+      const Tracker* ltrk;
+
+      void visit(const Barrel& b) { sectionName_ = b.myid(); }
+      void visit(const DTC& d) { dID=d.myid();}
+      void visit(const Cable& c) {cID=c.myid(); ncables++;}
+      void visit(const Ribbon& r)  {rID=r.myid(); nribbons++;}
+      void visit(const Module& m) { 
+	if (sectionName_=="TBPS") nlinks++;
+	/*           std::cout << "Cabling , "                                                                                                                                  		     << dID << ", "                                                                                                                                             		     << cID << ", "                                                                                                                                             		     << rID << ", "                                                                                                                                             		     << m.moduleType() << ", "                                                                                                                                  		     << m.readoutLink() << ", "                                                                                                                                 		     << std::fixed << std::setprecision(6)         
+		     << m.center().Rho() << ", "                                                                                                                                		     << m.center().Z() << ", "                                                                                                                                  		     << m.center().Phi() << ", "                                                                                                                                		     << m.dsDistance()<<", "                                                                                                                                    		     << std::endl;        */
+
+	for (int i=0; i < numProcEta; i++)
+	  if (AnalyzerHelpers::isModuleInEtaSector(*lsp, *ltrk, m, i))
+	    for (int j=0; j < numProcPhi; j++)
+	      if (AnalyzerHelpers::isModuleInPhiSector(*lsp, m, 589, j)) {
+		dtc_tf_map_.insert(std::make_pair(dID,i*numProcEta+j ));
+	      }
+      }
+
+    } v;
+
+    v.lsp = &simParms();
+    v.ltrk = &tracker;
+    v.preVisit();
+    tracker.accept(v);
+    v.postVisit();
   }
 
+}
