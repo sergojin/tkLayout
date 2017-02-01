@@ -25,6 +25,7 @@ int main(int argc, char* argv[]) {
     ("geometry-tracks,n", po::value<int>(&geomtracks)->default_value(100), "N. of tracks for geometry calculations.")
     ("material-tracks,N", po::value<int>(&mattracks)->default_value(100), "N. of tracks for material calculations.")
     ("power,p", "Report irradiated power analysis.")
+    ("cabling,c", "Build cabling model.")
     ("bandwidth,b", "Report base bandwidth analysis.")
     ("bandwidth-cpu,B", "Report multi-cpu bandwidth analysis.\n\t(implies 'b')")
     ("material,m", "Report materials and weights analyses.")
@@ -138,6 +139,9 @@ int main(int argc, char* argv[]) {
     if ((vm.count("all") || vm.count("bandwidth") || vm.count("bandwidth-cpu")) && !squid.reportBandwidthSite()) return EXIT_FAILURE;
     if ((vm.count("all") || vm.count("bandwidth-cpu")) && (!squid.reportTriggerProcessorsSite()) ) return EXIT_FAILURE;
     if ((vm.count("all") || vm.count("power")) && (!squid.reportPowerSite()) ) return EXIT_FAILURE;
+    
+    if ((vm.count("all") || vm.count("cabling")) && (!squid.buildCabling()) ) return EXIT_FAILURE;
+  
 
     // If we need to have the material model, then we build it
     if ( vm.count("all") || vm.count("material") || vm.count("resolution") || vm.count("debug-resolution") || vm.count("graph") || vm.count("xml") ) {

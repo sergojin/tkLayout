@@ -3213,7 +3213,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       }
 
       void postVisit() {
-	for(auto item : dtc_tf_map_) { std::cout << "Created cable from DTC id: " << item.first <<  " to TF id: "   <<item.second<<std::endl;}
+	//for(auto item : dtc_tf_map_) { std::cout << "Created cable from DTC id: " << item.first <<  " to TF id: "   <<item.second<<std::endl;}
 	std::cout<<"Total n of links: "<<nlinks<<std::endl;
 	std::cout<<"Total n of ribbons: "<<nribbons<<std::endl;
 	std::cout<<"Total n of cables: "<<ncables<<std::endl;
@@ -3228,9 +3228,9 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       void visit(const Cable& c) {cID=c.myid(); ncables++;}
       void visit(const Ribbon& r)  {rID=r.myid(); nribbons++;}
       void visit(const Module& m) { 
-	if (sectionName_=="TBPS") nlinks++;
-	/*           std::cout << "Cabling , "                                                                                                                                  		     << dID << ", "                                                                                                                                             		     << cID << ", "                                                                                                                                             		     << rID << ", "                                                                                                                                             		     << m.moduleType() << ", "                                                                                                                                  		     << m.readoutLink() << ", "                                                                                                                                 		     << std::fixed << std::setprecision(6)         
-		     << m.center().Rho() << ", "                                                                                                                                		     << m.center().Z() << ", "                                                                                                                                  		     << m.center().Phi() << ", "                                                                                                                                		     << m.dsDistance()<<", "                                                                                                                                    		     << std::endl;        */
+	nlinks++;
+	           std::cout << "Cabling , "                                                                                                                                  		     << dID << ", "                                                                                                                                             		     << cID << ", "                                                                                                                                             		     << rID << ", "                                                                                                                                             		     << m.moduleType() << ", "                                                                                                                                  		     << m.readoutLink() << ", "                                                                                                                                 		     << std::fixed << std::setprecision(6)         
+		     << m.center().Rho() << ", "                                                                                                                                		     << m.center().Z() << ", "                                                                                                                                  		     << m.center().Phi() << ", "                                                                                                                                		     << m.moduleRing()<<", "                                                                                                                                    		     << std::endl;        
 
 	for (int i=0; i < numProcEta; i++)
 	  if (AnalyzerHelpers::isModuleInEtaSector(*lsp, *ltrk, m, i))

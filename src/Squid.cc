@@ -184,19 +184,19 @@ namespace insur {
       return false;
     }
 
-    if (tr->myid() != "Pixels") {
-      buildCabling();
-      analyzeCablingInfo();
-    }
+    //    if (tr->myid() != "Pixels") {
+    //      buildCabling();
+    //      analyzeCablingInfo();
+    //    }
 
 
     stopTaskClock();
     return true;
   }
 
-void Squid::buildCabling() {
+bool Squid::buildCabling() {
 
-  class TrackerVisitor : public GeometryVisitor {
+    class TrackerVisitor : public GeometryVisitor {
     int cntId = 0;
     string c1, currentmodtype, currentmodlink;
     int currentActiveSide=0;
@@ -220,7 +220,7 @@ void Squid::buildCabling() {
       return cable;
     }
     Ribbon* CreateNewRibbon() { 
-      Ribbon* ribbon = new Ribbon();
+     Ribbon* ribbon = new Ribbon();
       ribbon->myid(ribbonID);
       ribbons_.push_back(ribbon);
       ribbonID++;   
@@ -284,21 +284,21 @@ void Squid::buildCabling() {
 
     
     bool CheckNewRibbonNeeded(Module& m) { 
-      if ((currentRibbon->nModules() >= currentRibbon->maxModules()) || CheckModuleTypeTransition(m) || CheckModuleLinkTransition(m) || CheckTrackerCenterTransition(m) || CheckLayerTransition(c2) )
+      if ((!currentRibbon)||(currentRibbon->nModules() >= currentRibbon->maxModules()) || CheckModuleTypeTransition(m) || CheckModuleLinkTransition(m) || CheckTrackerCenterTransition(m) || CheckLayerTransition(c2) )
 	return true;
       else 
 	return false;
     }
 
     bool CheckNewCableNeeded(Module& m) { 
-      if ((currentCable->nRibbons() >= currentCable->maxRibbons()) || CheckModuleTypeTransition(m) ||  CheckModuleLinkTransition(m) || CheckTrackerCenterTransition(m) || CheckLayerTransition(c2) )
+      if ((!currentCable)||(currentCable->nRibbons() >= currentCable->maxRibbons()) || CheckModuleTypeTransition(m) ||  CheckModuleLinkTransition(m) || CheckTrackerCenterTransition(m) || CheckLayerTransition(c2) )
 	return true;
       else 
 	return false;
     }
 
     bool CheckNewDTCNeeded(Module& m) {
-      if ((currentDTC->nCables() >= currentDTC->maxCables()) || CheckModuleTypeTransition(m) ||  CheckModuleLinkTransition(m) || CheckTrackerCenterTransition(m) || CheckLayerTransition(c2) )
+      if ((!currentDTC)||(currentDTC->nCables() >= currentDTC->maxCables()) || CheckModuleTypeTransition(m) ||  CheckModuleLinkTransition(m) || CheckTrackerCenterTransition(m) || CheckLayerTransition(c2) )
         return true;
       else
         return false;
@@ -330,7 +330,7 @@ void Squid::buildCabling() {
         currentCable->ribbons().push_back(currentRibbon);	
       }
 
-      std::cout<<"Module: "<<c1<<"   "<<c2<<"   "<< m.myid()<<"  "<<m.moduleType()<<"  "<<m.readoutLink()<<"   "<<m.side()<<"   "<<currentRibbon<<"   "<<currentCable<<std::endl;      
+      std::cout<<"Module: "<<c1<<"   "<<c2<<"   "<< m.myid()<<"  "<<m.moduleType()<<"  "<<m.readoutLink()<<"   "<<"    "<<m.moduleRing()<<"    "<<m.side()<<"   "<<currentRibbon<<"   "<<currentCable<<std::endl;      
 
       currentRibbon->modules().push_back(&m);
       currentmodtype = m.moduleType();
@@ -340,19 +340,25 @@ void Squid::buildCabling() {
       }
 
     //    }     
-  } v;
+    } v;
 
-  v.SetActiveSide(-1.0);
-  v.previsit();
-  tr->accept(v);
-  v.SetActiveSide(1.0);
-  tr->accept(v);
-  v.postvisit();
-
-  //dtcs=v.dtcs_;
-  //  cables=v.cables_;
-  //  ribbons=v.ribbons_;
-  for (const auto&  d : v.dtcs_ ) { tr->dtcs().push_back(d); } 
+    if (tr->myid() != "Pixels") {
+        v.SetActiveSide(-1.0);
+	v.previsit();
+	tr->accept(v);
+	v.SetActiveSide(1.0);
+	tr->accept(v);
+	v.postvisit();
+	
+    //dtcs=v.dtcs_;
+    //  cables=v.cables_;
+    //  ribbons=v.ribbons_;
+	for (const auto&  d : v.dtcs_ ) { tr->dtcs().push_back(d); } 
+	analyzeCablingInfo();      
+    }	
+    
+  
+  return true;
 }
 
 bool Squid::analyzeCablingInfo() {
